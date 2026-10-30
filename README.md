@@ -1,5 +1,7 @@
 # Colby Okazaki — Portfolio
 
+**Live site: [coa1b.github.io/portfolio](https://coa1b.github.io/portfolio/)**
+
 My personal portfolio site: a hero over a drifting, parallax cloud sky, project cards, and an in-page resume viewer.
 
 Built with plain HTML, CSS and JavaScript (canvas for the clouds, [PDF.js](https://mozilla.github.io/pdf.js/) for the resume). No build step.
