@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colby Okazaki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text: #0f2440;
+    --text-soft: #34507a;
+    --btn-bg: rgba(255,255,255,0.75);
+    --btn-text: #0f2440;
+    --btn-border: rgba(15,36,64,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: Inter, system-ui, sans-serif;
+    color: var(--text);
+    background: #8ec5ff;
+  }
+
+  /* Sky and clouds stay fixed while the content scrolls over them */
+  .sky { position: fixed; inset: 0; background: linear-gradient(180deg, #4a9eff 0%, #8ec5ff 55%, #d6ecff 100%); }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+
+  .hero {
+    position: relative; z-index: 2;
+    height: 100vh; height: 100svh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; padding: 0 16px;
+  }
+  .hello { font-family: "JetBrains Mono", monospace; font-size: 15px; color: var(--text-soft); margin-bottom: 12px; }
+  h1 { font-size: clamp(40px, 8vw, 88px); font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+  .tag { margin-top: 16px; font-size: clamp(16px, 2.2vw, 20px); color: var(--text-soft); max-width: 560px; }
+  .ctas { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .ctas a {
+    padding: 12px 22px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 15px;
+    background: var(--btn-bg); color: var(--btn-text); border: 1px solid var(--btn-border);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    transition: transform .2s ease;
+  }
+  .ctas a:hover { transform: translateY(-2px); }
+
+  /* Projects */
+  .section { position: relative; z-index: 2; max-width: 1040px; margin: 0 auto; padding: 48px 16px 96px; }
+  .section h2 { font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -0.02em; }
+  .section .sub { margin-top: 6px; color: var(--text-soft); }
+  .grid { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+
+  .glass {
+    background: rgba(255,255,255,0.62);
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 10px 30px rgba(30,70,130,0.12);
+    backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    border-radius: 20px;
+  }
+  .card { padding: 24px; display: flex; flex-direction: column; transition: transform .25s ease, box-shadow .25s ease; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(30,70,130,0.18); }
+  .card .meta { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--text-soft); }
+  .card h3 { margin-top: 6px; font-size: 21px; font-weight: 800; letter-spacing: -0.01em; }
+  .card p { margin-top: 10px; font-size: 15px; line-height: 1.55; color: #24395c; }
+  .card ul.points { margin-top: 10px; padding-left: 18px; font-size: 14px; line-height: 1.5; color: #34507a; }
+  .card ul.points li + li { margin-top: 4px; }
+  .tags { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
+  .tags li { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(74,158,255,0.14); color: #1a5bb5; }
+  .links { margin-top: auto; padding-top: 18px; display: flex; gap: 16px; }
+  .links a { font-size: 14px; font-weight: 600; color: #1a5bb5; text-decoration: none; }
+  .links a:hover { text-decoration: underline; }
+  .links .note { font-size: 13px; color: var(--text-soft); }
+
+  .more { margin-top: 20px; padding: 20px 24px; }
+  .more h3 { font-size: 16px; font-weight: 700; }
+  .more ul { margin-top: 10px; list-style: none; display: grid; gap: 10px; }
+  .more a { font-weight: 600; color: #1a5bb5; text-decoration: none; }
+  .more a:hover { text-decoration: underline; }
+  .more span { color: var(--text-soft); font-size: 14px; }
+
+  footer { position: relative; z-index: 2; text-align: center; padding: 0 16px 48px; color: var(--text-soft); font-size: 14px; }
+  footer a { color: var(--text); font-weight: 600; text-decoration: none; margin: 0 8px; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Resume viewer */
+  .viewer {
+    position: fixed; inset: 0; z-index: 10;
+    background: rgba(10,30,60,0.45);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display: flex; flex-direction: column; align-items: center;
+    opacity: 0; pointer-events: none; transition: opacity .25s ease;
+  }
+  .viewer.open { opacity: 1; pointer-events: auto; }
+  .viewer-bar {
+    width: 100%; max-width: 880px; padding: 12px 16px;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .viewer-bar .title { color: #fff; font-weight: 700; }
+  .viewer-bar .actions { display: flex; gap: 8px; }
+  .viewer-bar a, .viewer-bar button {
+    font: 600 14px Inter, sans-serif; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    background: rgba(255,255,255,0.9); color: var(--text); border: 0; text-decoration: none;
+  }
+  .viewer-pages {
+    width: 100%; max-width: 880px; flex: 1; overflow-y: auto;
+    padding: 0 16px 32px; display: flex; flex-direction: column; gap: 16px; align-items: center;
+  }
+  .viewer-pages canvas {
+    position: static; width: 100%; height: auto;
+    background: #fff; border-radius: 6px; box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  .viewer-pages .loading { color: #fff; margin-top: 40px; }
+  body.no-scroll { overflow: hidden; }
+</style>
+</head>
+<body>
+  <div class="sky"></div>
+  <canvas id="clouds"></canvas>
+
+  <header class="hero">
+    <p class="hello">// hi, I'm</p>
+    <h1>Colby Okazaki</h1>
+    <p class="tag">CS student at UC Santa Cruz and software engineer building full-stack, real-time web apps with TypeScript, React, and Node.</p>
+    <div class="ctas">
+      <a href="#projects">View projects</a>
+      <a href="resume.pdf" class="open-resume">Resume</a>
+      <a href="https://github.com/Coa1B" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/colby-okazaki/" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </header>
+
+  <main class="section" id="projects">
+    <h2>Projects</h2>
+    <p class="sub">A few things I've built recently.</p>
+
+    <div class="grid">
+      <article class="card glass">
+        <span class="meta">Oct 2026 – Present</span>
+        <h3>Collaborative Whiteboard</h3>
+        <p>A real-time whiteboard where multiple people draw on a shared canvas in room-based boards.</p>
+        <ul class="points">
+          <li>Live multi-user cursors, throttled to 50ms without dropping the final position</li>
+          <li>Full board snapshot for anyone joining mid-session</li>
+        </ul>
+        <ul class="tags"><li>React</li><li>Konva.js</li><li>Socket.io</li><li>Node.js</li><li>Jest</li></ul>
+        <div class="links">
+          <a href="https://github.com/Coa1B/collab-whiteboard" target="_blank" rel="noopener">Code →</a>
+        </div>
+      </article>
+
+      <article class="card glass">
+        <span class="meta">Oct 2026</span>
+        <h3>Sports Stats Query Engine</h3>
+        <p>Ask plain-English sports questions and get a one-sentence answer plus a stats table, across 7 leagues.</p>
+        <ul class="points">
+          <li>Rule-based NL parser backed by 56 stat definitions, streaming results as NDJSON</li>
+          <li>Live scoreboards, win probability, play-by-play and box scores</li>
+        </ul>
+        <ul class="tags"><li>TypeScript</li><li>Next.js</li><li>React</li><li>REST APIs</li></ul>
+        <div class="links">
+          <a href="https://statbot-dun.vercel.app" target="_blank" rel="noopener">Live demo →</a>
+          <a href="https://github.com/Coa1B/sports-stats-query-engine" target="_blank" rel="noopener">Code →</a>
+        </div>
+      </article>
+
+      <article class="card glass">
+        <span class="meta">Oct 2026 · AMD × LeRobot Hackathon</span>
+        <h3>Robotic Ring Sorter</h3>
+        <p>A voice-controlled robot arm that spots colored rings with an overhead camera and picks and places them.</p>
+        <ul class="points">
+          <li>Hue-based OpenCV color detection that held up in direct sunlight</li>
+          <li>Grab poses blending human demonstrations with a taught position grid</li>
+        </ul>
+        <ul class="tags"><li>Python</li><li>OpenCV</li><li>PyTorch</li><li>faster-whisper</li></ul>
+        <div class="links">
+          <span class="note">Hackathon project</span>
+        </div>
+      </article>
+
+      <article class="card glass">
+        <span class="meta">Jul 2026</span>
+        <h3>Movie Ticket Booking</h3>
+        <p>A full-stack cinema app for browsing showtimes, picking seats and managing tickets, with an admin portal.</p>
+        <ul class="points">
+          <li>Transactional seat booking that prevents double-bookings</li>
+          <li>Admin dashboard with occupancy and revenue reporting</li>
+        </ul>
+        <ul class="tags"><li>TypeScript</li><li>Express</li><li>Prisma</li><li>PostgreSQL</li><li>React</li></ul>
+        <div class="links">
+          <a href="https://github.com/Coa1B/movie-ticket-booking" target="_blank" rel="noopener">Code →</a>
+        </div>
+      </article>
+    </div>
+
+    <div class="more glass">
+      <h3>More on GitHub</h3>
+      <ul>
+        <li><a href="https://github.com/Coa1B/party-game" target="_blank" rel="noopener">Party Game</a> <span>— multiplayer party game where a big screen hosts and phones are the controllers</span></li>
+        <li><a href="https://github.com/Coa1B/lift-app" target="_blank" rel="noopener">Lift App</a> <span>— mobile-first workout tracker PWA</span></li>
+        <li><a href="https://github.com/Coa1B/nba-score-discord-integration" target="_blank" rel="noopener">NBA Halftime Bot</a> <span>— Discord bot that pings when NBA games hit halftime</span></li>
+      </ul>
+    </div>
+  </main>
+
+  <footer>
+    <a href="mailto:colbyokazaki@gmail.com">Email</a>
+    <a href="https://www.linkedin.com/in/colby-okazaki/" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="https://github.com/Coa1B" target="_blank" rel="noopener">GitHub</a>
+    <a href="resume.pdf" class="open-resume">Resume</a>
+  </footer>
+
+  <div class="viewer" id="resume-viewer" role="dialog" aria-modal="true" aria-label="Resume">
+    <div class="viewer-bar">
+      <span class="title">Resume</span>
+      <div class="actions">
+        <a href="resume.pdf" download="Colby-Okazaki-Resume.pdf">Download PDF</a>
+        <button type="button" id="close-resume" aria-label="Close resume">Close ✕</button>
+      </div>
+    </div>
+    <div class="viewer-pages" id="resume-pages"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+  // Render the resume PDF right on the page with pdf.js, so it shows instead of downloading
+  (() => {
+    const viewer = document.getElementById('resume-viewer');
+    const pages = document.getElementById('resume-pages');
+    let rendered = false;
+
+    async function render() {
+      pages.innerHTML = '<p class="loading">Loading resume…</p>';
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf = await pdfjsLib.getDocument('resume.pdf').promise;
+      pages.innerHTML = '';
+      // Render at a high resolution so text stays sharp when zoomed
+      const scale = 2 * Math.min(window.devicePixelRatio || 1, 2);
+      for (let n = 1; n <= pdf.numPages; n++) {
+        const page = await pdf.getPage(n);
+        const vp = page.getViewport({ scale });
+        const c = document.createElement('canvas');
+        c.width = vp.width; c.height = vp.height;
+        pages.appendChild(c);
+        await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      }
+      rendered = true;
+    }
+
+    function open(e) {
+      if (!window.pdfjsLib) return; // fall back to the plain PDF link
+      e.preventDefault();
+      viewer.classList.add('open');
+      document.body.classList.add('no-scroll');
+      if (!rendered) render().catch(() => {
+        pages.innerHTML = '<p class="loading">Couldn\'t load the preview. <a href="resume.pdf" style="color:#fff">Open the PDF</a></p>';
+      });
+    }
+
+    function close() {
+      viewer.classList.remove('open');
+      document.body.classList.remove('no-scroll');
+    }
+
+    document.querySelectorAll('.open-resume').forEach(a => a.addEventListener('click', open));
+    document.getElementById('close-resume').addEventListener('click', close);
+    viewer.addEventListener('click', e => { if (e.target === viewer || e.target === pages) close(); });
+    addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  })();
+  </script>
+
+<script>
+(() => {
+  const canvas = document.getElementById('clouds');
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W, H, DPR;
+
+  // Cloud colours: body highlight and underside shadow
+  const LIGHT = [255, 255, 255];
+  const SHADE = [150, 175, 210];
+
+  // Far layers are small, faint and slow; near layers are big and fast (parallax)
+  const LAYERS = [
+    { count: 7, scale: 0.45, speed: 5,  alpha: 0.55, y: [0.05, 0.45] },
+    { count: 5, scale: 0.75, speed: 11, alpha: 0.8,  y: [0.10, 0.70] },
+    { count: 4, scale: 1.15, speed: 20, alpha: 0.95, y: [0.40, 0.95] },
+  ];
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+
+  // Draw one fluffy cloud into an offscreen canvas from overlapping soft puffs
+  function makeSprite(w, h) {
+    const c = document.createElement('canvas');
+    c.width = w * DPR; c.height = h * DPR;
+    const g = c.getContext('2d');
+    g.scale(DPR, DPR);
+
+    const puffs = Math.round(rand(14, 22));
+    for (let i = 0; i < puffs; i++) {
+      const t = i / (puffs - 1);
+      const x = w * (0.18 + t * 0.64) + rand(-w * 0.05, w * 0.05);
+      // puffs in the middle sit higher, giving a domed top and flat-ish base
+      const bump = Math.sin(t * Math.PI);
+      const y = h * (0.62 - bump * 0.2) + rand(-h * 0.05, h * 0.05);
+      const r = h * (0.2 + bump * 0.18) * rand(0.8, 1.15);
+      const grad = g.createRadialGradient(x, y, 0, x, y, r);
+      grad.addColorStop(0, rgba(LIGHT, 0.9));
+      grad.addColorStop(0.55, rgba(LIGHT, 0.55));
+      grad.addColorStop(1, rgba(LIGHT, 0));
+      g.fillStyle = grad;
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+
+    // Shade the underside
+    g.globalCompositeOperation = 'source-atop';
+    const shade = g.createLinearGradient(0, h * 0.35, 0, h);
+    shade.addColorStop(0, rgba(SHADE, 0));
+    shade.addColorStop(1, rgba(SHADE, 0.55));
+    g.fillStyle = shade;
+    g.fillRect(0, 0, w, h);
+    return c;
+  }
+
+  let clouds = [];
+
+  function build() {
+    const base = Math.min(Math.max(W, 600), 1600) * 0.32;
+    clouds = [];
+    LAYERS.forEach((L, li) => {
+      for (let i = 0; i < L.count; i++) {
+        const w = base * L.scale * rand(0.8, 1.3);
+        const h = w * rand(0.42, 0.55);
+        clouds.push({
+          layer: li, w, h,
+          x: rand(-w, W),
+          y: H * rand(L.y[0], L.y[1]) - h / 2,
+          speed: L.speed * rand(0.8, 1.2),
+          alpha: L.alpha,
+          sprite: makeSprite(w, h),
+        });
+      }
+    });
+    clouds.sort((a, b) => a.layer - b.layer);
+  }
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    build();
+  }
+
+  // Gentle mouse parallax: near layers shift more than far ones
+  let mx = 0, my = 0, tx = 0, ty = 0;
+  addEventListener('pointermove', e => {
+    tx = (e.clientX / W - 0.5) * 2;
+    ty = (e.clientY / H - 0.5) * 2;
+  });
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    mx += (tx - mx) * 0.04; my += (ty - my) * 0.04;
+    ctx.clearRect(0, 0, W, H);
+
+    clouds.forEach(c => {
+      if (!reduceMotion) {
+        c.x += c.speed * dt;
+        if (c.x > W + 20) { c.x = -c.w - rand(0, W * 0.3); c.y = H * rand(...LAYERS[c.layer].y) - c.h / 2; }
+      }
+      const depth = (c.layer + 1) * 8;
+      ctx.globalAlpha = c.alpha;
+      ctx.drawImage(c.sprite, c.x - mx * depth, c.y - my * depth * 0.5, c.w, c.h);
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(frame);
+  }
+
+  addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
